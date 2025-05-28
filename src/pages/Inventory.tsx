@@ -27,7 +27,6 @@ const Inventory = () => {
   // Zustand store
   const {
     filters,
-    searchQuery,
     pagination,
     selectedItems,
     showFilters,
@@ -213,7 +212,7 @@ const Inventory = () => {
               <input
                 type="text"
                 placeholder={t('inventory.searchPlaceholder')}
-                value={searchQuery}
+                value={filters.search || ''}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="input input-bordered w-full pl-10"
               />

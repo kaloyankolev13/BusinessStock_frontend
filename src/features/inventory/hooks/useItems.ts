@@ -28,7 +28,8 @@ export const itemsKeys = {
 export const useItems = (filters?: ItemFilters, pagination?: PaginationParams) => {
   return useQuery({
     queryKey: itemsKeys.list(filters, pagination),
-    queryFn: () => itemsApi.getItems(filters, pagination),
+    // TODO: Add filters to the query
+    queryFn: () => itemsApi.getItems( pagination),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
@@ -105,7 +106,7 @@ export const useCreateItem = () => {
       
       // Add the new item to the cache
       queryClient.setQueryData(
-        itemsKeys.detail(response.data.id),
+        itemsKeys.detail(response.data.id.toString()),
         response
       );
 
@@ -127,7 +128,7 @@ export const useUpdateItem = () => {
     onSuccess: (response, variables) => {
       // Update the item in cache
       queryClient.setQueryData(
-        itemsKeys.detail(variables.id),
+        itemsKeys.detail(variables.id.toString()),
         response
       );
 
@@ -234,12 +235,12 @@ export const useCreateStockMovement = () => {
     onSuccess: (_, variables) => {
       // Invalidate stock movements for the item
       queryClient.invalidateQueries({ 
-        queryKey: itemsKeys.stockMovements(variables.itemId) 
+        queryKey: itemsKeys.stockMovements(variables.itemId.toString()) 
       });
       
       // Invalidate item details to update stock quantity
       queryClient.invalidateQueries({ 
-        queryKey: itemsKeys.detail(variables.itemId) 
+        queryKey: itemsKeys.detail(variables.itemId.toString()) 
       });
       
       // Invalidate lists

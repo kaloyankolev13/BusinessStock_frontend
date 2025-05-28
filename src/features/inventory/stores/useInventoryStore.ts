@@ -4,7 +4,6 @@ import type { ItemFilters, PaginationParams } from '../types';
 interface InventoryState {
   // Filters and search
   filters: ItemFilters;
-  searchQuery: string;
   pagination: PaginationParams;
   
   // UI state
@@ -27,7 +26,6 @@ interface InventoryState {
 export const useInventoryStore = create<InventoryState>((set, get) => ({
   // Initial state
   filters: {},
-  searchQuery: '',
   pagination: {
     page: 1,
     limit: 20,
@@ -46,12 +44,10 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   
   clearFilters: () => set({
     filters: {},
-    searchQuery: '',
     pagination: { ...get().pagination, page: 1 }
   }),
   
   setSearchQuery: (query) => set((state) => ({
-    searchQuery: query,
     filters: { ...state.filters, search: query },
     pagination: { ...state.pagination, page: 1 }
   })),

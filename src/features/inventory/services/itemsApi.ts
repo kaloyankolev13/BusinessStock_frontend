@@ -41,7 +41,7 @@ const exportItems = createExportFunction(ITEMS_BASE_URL);
 export const itemsApi = {
   // Get all items with filtering and pagination
   getItems: async (
-    filters?: ItemFilters,
+    // filters?: ItemFilters,
     pagination?: PaginationParams
   ): Promise<ApiResponse<PaginatedResponse<Item>>> => {
     // For now, get all items since backend returns array directly
