@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Package,
@@ -15,59 +16,61 @@ import {
 import { cn } from '../../lib/utils';
 import type { NavItem } from '../../types';
 
-const navigation: NavItem[] = [
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    name: 'Inventory',
-    href: '/inventory',
-    icon: Package,
-    children: [
-      { name: 'Items', href: '/inventory/items', icon: Package },
-      { name: 'Categories', href: '/inventory/categories', icon: Package },
-      { name: 'Suppliers', href: '/inventory/suppliers', icon: Users },
-    ],
-  },
-  {
-    name: 'Sales',
-    href: '/sales',
-    icon: FileText,
-    children: [
-      { name: 'Invoices', href: '/sales/invoices', icon: FileText },
-      { name: 'Clients', href: '/sales/clients', icon: Users },
-    ],
-  },
-  {
-    name: 'Purchasing',
-    href: '/purchasing',
-    icon: ShoppingCart,
-    children: [
-      { name: 'Purchase Orders', href: '/purchasing/orders', icon: ShoppingCart },
-      { name: 'Suppliers', href: '/purchasing/suppliers', icon: Users },
-    ],
-  },
-  {
-    name: 'Company',
-    href: '/company',
-    icon: Building2,
-    children: [
-      { name: 'Firm Settings', href: '/company/settings', icon: Settings },
-      { name: 'Users', href: '/company/users', icon: Users },
-    ],
-  },
-];
-
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+
+  // Create navigation with translations
+  const navigation: NavItem[] = [
+    {
+      name: t('navigation.dashboard'),
+      href: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      name: t('navigation.inventory'),
+      href: '/inventory',
+      icon: Package,
+      children: [
+        { name: t('inventory.items'), href: '/inventory/items', icon: Package },
+        { name: t('inventory.categories'), href: '/inventory/categories', icon: Package },
+        { name: t('inventory.suppliers'), href: '/inventory/suppliers', icon: Users },
+      ],
+    },
+    {
+      name: t('navigation.sales'),
+      href: '/sales',
+      icon: FileText,
+      children: [
+        { name: t('sales.invoices'), href: '/sales/invoices', icon: FileText },
+        { name: t('sales.clients'), href: '/sales/clients', icon: Users },
+      ],
+    },
+    {
+      name: t('navigation.purchasing'),
+      href: '/purchasing',
+      icon: ShoppingCart,
+      children: [
+        { name: t('purchasing.orders'), href: '/purchasing/orders', icon: ShoppingCart },
+        { name: t('purchasing.suppliers'), href: '/purchasing/suppliers', icon: Users },
+      ],
+    },
+    {
+      name: t('navigation.company'),
+      href: '/company',
+      icon: Building2,
+      children: [
+        { name: t('company.settings'), href: '/company/settings', icon: Settings },
+        { name: t('company.users'), href: '/company/users', icon: Users },
+      ],
+    },
+  ];
 
   const toggleExpanded = (name: string) => {
     setExpandedItems(prev =>
@@ -95,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         );
       }
     });
-  }, [location.pathname]);
+  }, [location.pathname, navigation]);
 
   return (
     <>
@@ -120,7 +123,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="flex items-center">
               <Building2 className="h-8 w-8 text-primary-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">
-                BusinessApp
+                {t('app.name')}
               </span>
             </div>
           </div>
@@ -206,11 +209,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={() => window.innerWidth < 1024 && onClose()}
               >
                 <Settings className="h-4 w-4" />
-                <span>Settings</span>
+                <span>{t('navigation.settings')}</span>
               </Link>
               <button className="sidebar-link text-sm w-full text-red-600 hover:bg-red-50">
                 <LogOut className="h-4 w-4" />
-                <span>Sign out</span>
+                <span>{t('navigation.logout')}</span>
               </button>
             </div>
           </div>

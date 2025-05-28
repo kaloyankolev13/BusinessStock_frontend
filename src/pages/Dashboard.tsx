@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   TrendingUp,
   TrendingDown,
@@ -8,76 +9,78 @@ import {
   DollarSign,
 } from 'lucide-react';
 
-const stats = [
-  {
-    name: 'Total Revenue',
-    value: '$45,231.89',
-    change: '+20.1%',
-    changeType: 'increase',
-    icon: DollarSign,
-  },
-  {
-    name: 'Active Items',
-    value: '2,350',
-    change: '+180',
-    changeType: 'increase',
-    icon: Package,
-  },
-  {
-    name: 'Total Clients',
-    value: '12,234',
-    change: '+19%',
-    changeType: 'increase',
-    icon: Users,
-  },
-  {
-    name: 'Pending Invoices',
-    value: '573',
-    change: '-2%',
-    changeType: 'decrease',
-    icon: FileText,
-  },
-];
-
-const recentActivity = [
-  {
-    id: 1,
-    type: 'invoice',
-    description: 'Invoice #INV-001 created for Acme Corp',
-    time: '2 hours ago',
-    amount: '$1,250.00',
-  },
-  {
-    id: 2,
-    type: 'purchase',
-    description: 'Purchase Order #PO-045 received',
-    time: '4 hours ago',
-    amount: '$850.00',
-  },
-  {
-    id: 3,
-    type: 'item',
-    description: 'New item "Wireless Headphones" added',
-    time: '6 hours ago',
-    amount: null,
-  },
-  {
-    id: 4,
-    type: 'client',
-    description: 'New client "Tech Solutions Ltd" registered',
-    time: '1 day ago',
-    amount: null,
-  },
-];
-
 export default function Dashboard() {
+  const { t } = useTranslation();
+
+  const stats = [
+    {
+      name: t('dashboard.totalRevenue'),
+      value: '$45,231.89',
+      change: '+20.1%',
+      changeType: 'increase',
+      icon: DollarSign,
+    },
+    {
+      name: t('dashboard.activeItems'),
+      value: '2,350',
+      change: '+180',
+      changeType: 'increase',
+      icon: Package,
+    },
+    {
+      name: t('dashboard.totalClients'),
+      value: '12,234',
+      change: '+19%',
+      changeType: 'increase',
+      icon: Users,
+    },
+    {
+      name: t('dashboard.pendingInvoices'),
+      value: '573',
+      change: '-2%',
+      changeType: 'decrease',
+      icon: FileText,
+    },
+  ];
+
+  const recentActivity = [
+    {
+      id: 1,
+      type: 'invoice',
+      description: 'Invoice #INV-001 created for Acme Corp',
+      time: '2 hours ago',
+      amount: '$1,250.00',
+    },
+    {
+      id: 2,
+      type: 'purchase',
+      description: 'Purchase Order #PO-045 received',
+      time: '4 hours ago',
+      amount: '$850.00',
+    },
+    {
+      id: 3,
+      type: 'item',
+      description: 'New item "Wireless Headphones" added',
+      time: '6 hours ago',
+      amount: null,
+    },
+    {
+      id: 4,
+      type: 'client',
+      description: 'New client "Tech Solutions Ltd" registered',
+      time: '1 day ago',
+      amount: null,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('navigation.dashboard')}</h1>
         <p className="text-gray-600">
-          Welcome back! Here's what's happening with your business today.
+          {t('dashboard.welcome')}
         </p>
       </div>
 
@@ -125,7 +128,7 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <div className="card">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('dashboard.recentActivity')}</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
@@ -167,25 +170,25 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <div className="card">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('dashboard.quickActions')}</h3>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-2 gap-4">
               <button className="btn-primary">
                 <FileText className="h-4 w-4 mr-2" />
-                New Invoice
+                {t('dashboard.newInvoice')}
               </button>
               <button className="btn-outline">
                 <Package className="h-4 w-4 mr-2" />
-                Add Item
+                {t('dashboard.addItem')}
               </button>
               <button className="btn-outline">
                 <Users className="h-4 w-4 mr-2" />
-                New Client
+                {t('dashboard.newClient')}
               </button>
               <button className="btn-outline">
                 <DollarSign className="h-4 w-4 mr-2" />
-                Purchase Order
+                {t('dashboard.purchaseOrder')}
               </button>
             </div>
           </div>

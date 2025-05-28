@@ -11,6 +11,7 @@ A modern React frontend for a multi-firm business management system built with T
 - **User Management**: Role-based access control
 - **Responsive Design**: Works on desktop, tablet, and mobile
 - **Modern UI**: Clean, professional interface with Tailwind CSS
+- **Internationalization**: Multi-language support (English, Bulgarian)
 
 ## Tech Stack
 
@@ -24,6 +25,7 @@ A modern React frontend for a multi-firm business management system built with T
 - **React Hook Form** - Form handling
 - **Zod** - Schema validation
 - **Axios** - HTTP client
+- **React i18next** - Internationalization
 
 ## Getting Started
 
@@ -62,6 +64,56 @@ npm run dev
 
 The app will be available at `http://localhost:5173`
 
+## Internationalization
+
+The application supports multiple languages using react-i18next:
+
+### Supported Languages
+- **English** (en) - Default
+- **Bulgarian** (bg) - Български
+
+### Adding New Languages
+
+1. Create a new translation file in `src/locales/{language-code}/common.json`
+2. Add the language to the resources in `src/lib/i18n.ts`
+3. Update the language options in `src/components/ui/LanguageSwitcher.tsx`
+
+### Using Translations
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+function MyComponent() {
+  const { t } = useTranslation();
+  
+  return (
+    <div>
+      <h1>{t('navigation.dashboard')}</h1>
+      <p>{t('dashboard.welcome')}</p>
+    </div>
+  );
+}
+```
+
+### Translation Keys Structure
+
+```json
+{
+  "app": {
+    "name": "Application name",
+    "title": "Application title"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventory"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}
+```
+
 ## Project Structure
 
 ```
@@ -72,7 +124,11 @@ src/
 ├── pages/              # Page components
 ├── lib/                # Utilities and configurations
 │   ├── api.ts          # API client setup
-│   └── utils.ts        # Utility functions
+│   ├── utils.ts        # Utility functions
+│   └── i18n.ts         # Internationalization setup
+├── locales/            # Translation files
+│   ├── en/             # English translations
+│   └── bg/             # Bulgarian translations
 ├── types/              # TypeScript type definitions
 ├── hooks/              # Custom React hooks
 └── styles/             # Global styles
