@@ -13,13 +13,13 @@ import {
 } from 'lucide-react';
 import { 
   useItems, 
-  useLowStockItems, 
   useDeleteItem,
   useExportItems,
   useImportItems,
   useInventoryStore
 } from '../features/inventory';
 import { formatCurrency } from '../shared/utils';
+import React from 'react';
 
 const Inventory = () => {
   const { t } = useTranslation();
@@ -43,10 +43,20 @@ const Inventory = () => {
 
   // API hooks
   const { data: itemsData, isLoading, error } = useItems(filters, pagination);
-  const { data: lowStockData } = useLowStockItems({ page: 1, limit: 5 });
   const deleteItemMutation = useDeleteItem();
   const exportItemsMutation = useExportItems();
   const importItemsMutation = useImportItems();
+
+  // Derive low stock items from main items data
+  const lowStockItems = React.useMemo(() => {
+    if (!itemsData?.data?.data) return [];
+    
+    return itemsData.data.data.filter(item => {
+      const stock = item.quantity || 0;
+      const minLevel = item.minStockLevel || 5;
+      return stock <= minLevel;
+    }).slice(0, 5); // Take first 5 for alert
+  }, [itemsData?.data?.data]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -166,12 +176,12 @@ const Inventory = () => {
       </div>
 
       {/* Low Stock Alert */}
-      {lowStockData?.data.data && lowStockData.data.data.length > 0 && (
+      {lowStockItems.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center">
             <AlertTriangle className="h-5 w-5 text-yellow-400 mr-2" />
             <span className="text-yellow-800 font-medium">
-              {t('inventory.lowStockAlert', { count: lowStockData.data.total })}
+              {t('inventory.lowStockAlert', { count: lowStockItems.length })}
             </span>
           </div>
         </div>
@@ -318,7 +328,7 @@ const Inventory = () => {
               <table className="table table-zebra w-full">
                 <thead>
                   <tr>
-                    <th>
+                    <th className="text-left">
                       <input
                         type="checkbox"
                         className="checkbox"
@@ -333,19 +343,19 @@ const Inventory = () => {
                         }}
                       />
                     </th>
-                    <th>{t('inventory.fields.name')}</th>
-                    <th>{t('inventory.fields.sku')}</th>
-                    <th>{t('inventory.fields.category')}</th>
-                    <th>{t('inventory.fields.price')}</th>
-                    <th>{t('inventory.fields.stock')}</th>
-                    <th>{t('inventory.fields.status')}</th>
-                    <th>{t('common.actions')}</th>
+                    <th className="text-left">{t('inventory.fields.name')}</th>
+                    <th className="text-left">{t('inventory.fields.sku')}</th>
+                    <th className="text-left">{t('inventory.fields.category')}</th>
+                    <th className="text-right">{t('inventory.fields.price')}</th>
+                    <th className="text-center">{t('inventory.fields.stock')}</th>
+                    <th className="text-center">{t('inventory.fields.status')}</th>
+                    <th className="text-center">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {itemsData?.data.data.map((item) => (
                     <tr key={item.id}>
-                      <td>
+                      <td className="text-left">
                         <input
                           type="checkbox"
                           className="checkbox"
@@ -353,7 +363,7 @@ const Inventory = () => {
                           onChange={() => toggleItemSelection(item.id)}
                         />
                       </td>
-                      <td>
+                      <td className="text-left">
                         <div className="flex items-center space-x-3">
                           <div className="avatar">
                             <div className="mask mask-squircle w-12 h-12">
@@ -372,10 +382,10 @@ const Inventory = () => {
                           </div>
                         </div>
                       </td>
-                      <td>{item.sku}</td>
-                      <td>{item.category?.name || '-'}</td>
-                      <td>{formatCurrency(item.price)}</td>
-                      <td>
+                      <td className="text-left font-mono">{item.sku}</td>
+                      <td className="text-left">{item.categoryName || '-'}</td>
+                      <td className="text-right font-semibold">{formatCurrency(item.price)}</td>
+                      <td className="text-center">
                         <span className={`badge ${
                           item.quantity <= (item.minStockLevel || 5)
                             ? 'badge-error' 
@@ -386,13 +396,13 @@ const Inventory = () => {
                           {item.quantity}
                         </span>
                       </td>
-                      <td>
+                      <td className="text-center">
                         <span className={`badge ${item.isActive ? 'badge-success' : 'badge-error'}`}>
                           {item.isActive ? t('common.active') : t('common.inactive')}
                         </span>
                       </td>
-                      <td>
-                        <div className="flex space-x-2">
+                      <td className="text-center">
+                        <div className="flex justify-center space-x-2">
                           <button className="btn btn-ghost btn-xs">
                             <Eye className="h-4 w-4" />
                           </button>

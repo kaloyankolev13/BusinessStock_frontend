@@ -7,6 +7,7 @@ import type {
   ItemFilters,
   PaginationParams,
   CreateStockMovementRequest,
+  Item,
 } from '../types';
 
 // Query keys
@@ -47,9 +48,45 @@ export const useItem = (id: string, enabled = true) => {
 
 // Get low stock items
 export const useLowStockItems = (pagination?: PaginationParams) => {
+  const queryClient = useQueryClient();
+  
   return useQuery({
     queryKey: itemsKeys.lowStock(),
-    queryFn: () => itemsApi.getLowStockItems(pagination),
+    queryFn: async () => {
+      // Try to get items from cache first
+      const cachedItems = queryClient.getQueryData<{ data: { data: Item[] } }>(itemsKeys.list(undefined, undefined));
+      
+      if (cachedItems?.data?.data) {
+        // Use cached data if available
+        const allItems = cachedItems.data.data;
+        const filteredData = allItems.filter((item: Item) => {
+          const stock = item.quantity || 0;
+          const minLevel = item.minStockLevel || 5;
+          return stock <= minLevel;
+        });
+        
+        // Apply pagination
+        const page = pagination?.page || 1;
+        const limit = pagination?.limit || 5;
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedData = filteredData.slice(startIndex, endIndex);
+        
+        return {
+          success: true,
+          data: {
+            data: paginatedData,
+            total: filteredData.length,
+            page,
+            limit,
+            totalPages: Math.ceil(filteredData.length / limit),
+          }
+        };
+      }
+      
+      // Fallback to API call if no cached data
+      return itemsApi.getLowStockItems(pagination);
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes (more frequent updates for alerts)
   });
 };
