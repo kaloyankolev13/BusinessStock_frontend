@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
+import Inventory from './pages/Inventory';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -29,7 +30,7 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               
               {/* Inventory routes */}
-              <Route path="inventory/items" element={<div className="p-8 text-center text-gray-500">Items page coming soon...</div>} />
+              <Route path="inventory/items" element={<Inventory />} />
               <Route path="inventory/categories" element={<div className="p-8 text-center text-gray-500">Categories page coming soon...</div>} />
               <Route path="inventory/suppliers" element={<div className="p-8 text-center text-gray-500">Suppliers page coming soon...</div>} />
               

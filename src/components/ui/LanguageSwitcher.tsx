@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn } from '../../shared/utils';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },

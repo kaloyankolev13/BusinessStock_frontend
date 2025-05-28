@@ -3,15 +3,15 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translation files
-import enTranslations from '../locales/en/common.json';
-import bgTranslations from '../locales/bg/common.json';
+import enTranslations from '../../locales/en/common.json';
+import bgTranslations from '../../locales/bg/common.json';
 
 const resources = {
   en: {
-    common: enTranslations,
+    translation: enTranslations,
   },
   bg: {
-    common: bgTranslations,
+    translation: bgTranslations,
   },
 };
 
@@ -21,20 +21,16 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
-    defaultNS: 'common',
-    
-    // Language detection options
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage'],
-    },
+    debug: import.meta.env.DEV,
 
     interpolation: {
       escapeValue: false, // React already escapes values
     },
 
-    // Development options
-    debug: process.env.NODE_ENV === 'development',
+    detection: {
+      order: ['localStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage'],
+    },
   });
 
 export default i18n; 

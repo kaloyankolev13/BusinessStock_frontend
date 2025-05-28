@@ -1,177 +1,349 @@
-# Business App Frontend
+# Business Management ERP - Frontend
 
-A modern React frontend for a multi-firm business management system built with TypeScript, Tailwind CSS, and Vite.
+A modern React frontend for a multi-firm business management ERP system built with TypeScript, React Query, and Tailwind CSS.
 
-## Features
+## 🏗️ Architecture
 
-- **Multi-firm Support**: Switch between different companies/firms
-- **Inventory Management**: Items, categories, suppliers, and stock tracking
-- **Sales Management**: Invoices, clients, and sales tracking
-- **Purchase Management**: Purchase orders and supplier management
-- **User Management**: Role-based access control
-- **Responsive Design**: Works on desktop, tablet, and mobile
-- **Modern UI**: Clean, professional interface with Tailwind CSS
-- **Internationalization**: Multi-language support (English, Bulgarian)
+This project follows a **feature-based architecture** that promotes modularity, maintainability, and scalability.
 
-## Tech Stack
+### Directory Structure
+
+```
+src/
+├── features/                     # Feature-based modules
+│   ├── inventory/                # Inventory management
+│   │   ├── components/           # Feature-specific components
+│   │   ├── hooks/                # React Query hooks
+│   │   ├── services/             # API services
+│   │   ├── types/                # TypeScript types
+│   │   └── index.ts              # Feature exports
+│   ├── sales/                    # Sales management (planned)
+│   ├── purchasing/               # Purchase management (planned)
+│   └── company/                  # Company/Firm management (planned)
+├── shared/                       # Shared/Common modules
+│   ├── components/               # Reusable UI components
+│   ├── hooks/                    # Shared custom hooks
+│   ├── utils/                    # Utility functions
+│   ├── types/                    # Shared type definitions
+│   └── constants/                # Application constants
+├── components/                   # Layout components
+├── pages/                        # Page components
+└── locales/                      # Internationalization
+```
+
+## 🚀 Features
+
+### ✅ Implemented
+- **Inventory Management API**
+  - Items CRUD operations
+  - Categories management
+  - Suppliers management
+  - Stock movements tracking
+  - Low stock alerts
+  - Import/Export functionality
+  - Image upload support
+  - Advanced filtering and pagination
+
+- **React Query Integration**
+  - Optimistic updates
+  - Intelligent caching
+  - Background refetching
+  - Error handling
+  - Loading states
+
+- **TypeScript Support**
+  - Comprehensive type definitions
+  - Type-safe API calls
+  - IntelliSense support
+
+- **Internationalization**
+  - English and Bulgarian support
+  - Dynamic language switching
+  - Comprehensive translations
+
+### 🔄 Planned
+- Sales management
+- Purchase orders
+- Company/Firm management
+- User management
+- Reporting system
+
+## 📦 Inventory API
+
+### Types
+
+```typescript
+// Core entities
+interface Item {
+  id: string;
+  name: string;
+  sku: string;
+  categoryId?: string;
+  supplierId?: string;
+  stockQuantity: number;
+  sellingPrice: number;
+  // ... more fields
+}
+
+interface Category {
+  id: string;
+  name: string;
+  parentCategoryId?: string;
+  isActive: boolean;
+  // ... more fields
+}
+
+interface Supplier {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  isActive: boolean;
+  // ... more fields
+}
+```
+
+### API Services
+
+```typescript
+// Items API
+import { itemsApi } from 'features/inventory';
+
+// Get items with filtering and pagination
+const items = await itemsApi.getItems(filters, pagination);
+
+// CRUD operations
+const newItem = await itemsApi.createItem(itemData);
+const updatedItem = await itemsApi.updateItem(updateData);
+await itemsApi.deleteItem(itemId);
+
+// Stock management
+const updatedItem = await itemsApi.updateStock(itemId, quantity, reason);
+const movements = await itemsApi.getItemStockMovements(itemId);
+
+// File operations
+const result = await itemsApi.uploadItemImage(itemId, file);
+const exportUrl = await itemsApi.exportItems(filters);
+```
+
+### React Query Hooks
+
+```typescript
+import { 
+  useItems, 
+  useItem, 
+  useCreateItem, 
+  useUpdateItem, 
+  useDeleteItem,
+  useLowStockItems 
+} from 'features/inventory';
+
+// In your component
+function InventoryPage() {
+  const { data: items, isLoading } = useItems(filters, pagination);
+  const { data: lowStockItems } = useLowStockItems();
+  const createMutation = useCreateItem();
+  const updateMutation = useUpdateItem();
+  const deleteMutation = useDeleteItem();
+
+  // Mutations automatically handle cache updates and notifications
+  const handleCreate = (itemData) => {
+    createMutation.mutate(itemData);
+  };
+}
+```
+
+## 🛠️ Technology Stack
 
 - **React 19** - UI library
 - **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
+- **Vite** - Build tool
+- **React Query (TanStack Query)** - Server state management
 - **React Router** - Client-side routing
-- **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Beautiful icons
-- **React Query** - Server state management
+- **Tailwind CSS** - Styling
 - **React Hook Form** - Form handling
 - **Zod** - Schema validation
 - **Axios** - HTTP client
+- **React Hot Toast** - Notifications
 - **React i18next** - Internationalization
+- **Lucide React** - Icons
 
-## Getting Started
+## 🔧 API Configuration
 
-### Prerequisites
+### Environment Variables
 
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-```bash
-git clone <repository-url>
-cd stock_app_frontend
-```
-
-2. Install dependencies
-```bash
-npm install
-```
-
-3. Create environment file
-```bash
-cp .env.example .env
-```
-
-4. Update the environment variables in `.env`:
 ```env
 VITE_API_BASE_URL=https://localhost:7001/api
 ```
 
-5. Start the development server
-```bash
-npm run dev
+### Authentication
+
+The API client automatically handles:
+- JWT token attachment
+- Firm ID headers
+- Token refresh
+- Unauthorized redirects
+
+```typescript
+// API client configuration
+const apiClient = axios.create({
+  baseURL: process.env.VITE_API_BASE_URL,
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'X-Firm-Id': firmId
+  }
+});
 ```
 
-The app will be available at `http://localhost:5173`
+## 📊 State Management
 
-## Internationalization
+### React Query Configuration
 
-The application supports multiple languages using react-i18next:
+```typescript
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
+```
 
-### Supported Languages
-- **English** (en) - Default
-- **Bulgarian** (bg) - Български
+### Cache Keys Structure
 
-### Adding New Languages
+```typescript
+// Hierarchical cache keys for efficient invalidation
+export const itemsKeys = {
+  all: ['items'],
+  lists: () => [...itemsKeys.all, 'list'],
+  list: (filters, pagination) => [...itemsKeys.lists(), { filters, pagination }],
+  details: () => [...itemsKeys.all, 'detail'],
+  detail: (id) => [...itemsKeys.details(), id],
+  lowStock: () => [...itemsKeys.all, 'lowStock'],
+};
+```
 
-1. Create a new translation file in `src/locales/{language-code}/common.json`
-2. Add the language to the resources in `src/lib/i18n.ts`
-3. Update the language options in `src/components/ui/LanguageSwitcher.tsx`
+## 🌐 Internationalization
 
-### Using Translations
+### Adding Translations
 
-```tsx
+```json
+// src/locales/en/common.json
+{
+  "inventory": {
+    "title": "Inventory Management",
+    "fields": {
+      "name": "Name",
+      "sku": "SKU"
+    }
+  }
+}
+```
+
+### Usage in Components
+
+```typescript
 import { useTranslation } from 'react-i18next';
 
-function MyComponent() {
+function Component() {
   const { t } = useTranslation();
+  
+  return <h1>{t('inventory.title')}</h1>;
+}
+```
+
+## 🚀 Getting Started
+
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API URL
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+## 📝 Usage Examples
+
+### Creating a New Item
+
+```typescript
+import { useCreateItem } from 'features/inventory';
+
+function CreateItemForm() {
+  const createItem = useCreateItem();
+  
+  const handleSubmit = (data) => {
+    createItem.mutate({
+      name: data.name,
+      sku: data.sku,
+      sellingPrice: data.price,
+      stockQuantity: data.quantity,
+      // ... other fields
+    });
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Form fields */}
+    </form>
+  );
+}
+```
+
+### Filtering and Pagination
+
+```typescript
+import { useItems } from 'features/inventory';
+
+function ItemsList() {
+  const [filters, setFilters] = useState({
+    search: '',
+    categoryId: '',
+    isActive: true
+  });
+  
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    sortBy: 'name',
+    sortOrder: 'asc'
+  });
+  
+  const { data, isLoading } = useItems(filters, pagination);
   
   return (
     <div>
-      <h1>{t('navigation.dashboard')}</h1>
-      <p>{t('dashboard.welcome')}</p>
+      {/* Search and filters */}
+      {/* Items table */}
+      {/* Pagination */}
     </div>
   );
 }
 ```
 
-### Translation Keys Structure
+## 🤝 Contributing
 
-```json
-{
-  "app": {
-    "name": "Application name",
-    "title": "Application title"
-  },
-  "navigation": {
-    "dashboard": "Dashboard",
-    "inventory": "Inventory"
-  },
-  "common": {
-    "save": "Save",
-    "cancel": "Cancel"
-  }
-}
-```
+1. Follow the feature-based architecture
+2. Use TypeScript for all new code
+3. Add proper error handling
+4. Include loading states
+5. Add translations for new text
+6. Write comprehensive types
 
-## Project Structure
-
-```
-src/
-├── components/          # Reusable UI components
-│   ├── layout/         # Layout components (Sidebar, Header, etc.)
-│   └── ui/             # Basic UI components
-├── pages/              # Page components
-├── lib/                # Utilities and configurations
-│   ├── api.ts          # API client setup
-│   ├── utils.ts        # Utility functions
-│   └── i18n.ts         # Internationalization setup
-├── locales/            # Translation files
-│   ├── en/             # English translations
-│   └── bg/             # Bulgarian translations
-├── types/              # TypeScript type definitions
-├── hooks/              # Custom React hooks
-└── styles/             # Global styles
-```
-
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## API Integration
-
-The frontend is designed to work with an ASP.NET Core Web API backend. The API client is configured in `src/lib/api.ts` and includes:
-
-- Automatic JWT token handling
-- Request/response interceptors
-- Error handling
-- TypeScript support
-
-## Database Schema
-
-The frontend is built to work with the following main entities:
-
-- **Users** - ASP.NET Identity users
-- **Firms** - Companies/organizations
-- **Items** - Products/inventory items
-- **Categories** - Item categorization
-- **Suppliers** - Vendor management
-- **Clients** - Customer management
-- **Invoices** - Sales documents
-- **Purchase Orders** - Purchasing documents
-- **Currencies** - Multi-currency support
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License.

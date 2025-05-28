@@ -13,8 +13,8 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
-import { cn } from '../../lib/utils';
-import type { NavItem } from '../../types';
+import { cn } from '../../shared/utils';
+import type { NavItem } from '../../shared/types';
 
 interface SidebarProps {
   isOpen: boolean;
