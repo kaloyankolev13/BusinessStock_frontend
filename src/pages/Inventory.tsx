@@ -125,7 +125,7 @@ const Inventory = () => {
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
-              Table
+              {t('inventory.tableView')}
             </button>
             <button
               onClick={() => setViewMode('grid')}
@@ -135,7 +135,7 @@ const Inventory = () => {
                   : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
-              Grid
+              {t('inventory.gridView')}
             </button>
           </div>
           
@@ -189,14 +189,14 @@ const Inventory = () => {
                 onClick={clearSelection}
                 className="btn btn-outline btn-sm"
               >
-                Clear Selection
+                {t('inventory.clearSelection')}
               </button>
               <button
                 onClick={handleBulkDelete}
                 className="btn btn-outline btn-sm text-red-600 border-red-300 hover:bg-red-50"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
-                Delete Selected
+                {t('inventory.deleteSelected')}
               </button>
             </div>
           </div>
@@ -253,12 +253,12 @@ const Inventory = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price Range
+                  {t('inventory.priceRange')}
                 </label>
                 <div className="flex space-x-2">
                   <input
                     type="number"
-                    placeholder="Min"
+                    placeholder={t('inventory.minPlaceholder')}
                     className="input input-bordered flex-1"
                     onChange={(e) => handleFilterChange({ 
                       priceMin: e.target.value ? parseFloat(e.target.value) : undefined 
@@ -266,7 +266,7 @@ const Inventory = () => {
                   />
                   <input
                     type="number"
-                    placeholder="Max"
+                    placeholder={t('inventory.maxPlaceholder')}
                     className="input input-bordered flex-1"
                     onChange={(e) => handleFilterChange({ 
                       priceMax: e.target.value ? parseFloat(e.target.value) : undefined 
@@ -276,27 +276,27 @@ const Inventory = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Stock Level
+                  {t('inventory.stockLevel')}
                 </label>
                 <select
                   onChange={(e) => handleFilterChange({ stockLevel: e.target.value || undefined })}
                   className="select select-bordered w-full"
                 >
-                  <option value="">All Levels</option>
-                  <option value="low">Low Stock</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">High Stock</option>
+                  <option value="">{t('inventory.allLevels')}</option>
+                  <option value="low">{t('inventory.lowStock')}</option>
+                  <option value="normal">{t('inventory.normal')}</option>
+                  <option value="high">{t('inventory.highStock')}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Supplier
+                  {t('inventory.fields.supplier')}
                 </label>
                 <select
                   onChange={(e) => handleFilterChange({ supplierId: e.target.value || undefined })}
                   className="select select-bordered w-full"
                 >
-                  <option value="">All Suppliers</option>
+                  <option value="">{t('inventory.allSuppliers')}</option>
                   {/* Suppliers would be loaded from API */}
                 </select>
               </div>
@@ -344,7 +344,7 @@ const Inventory = () => {
                 </thead>
                 <tbody>
                   {itemsData?.data.data.map((item) => (
-                    <tr key={item.sku}>
+                    <tr key={item.id}>
                       <td>
                         <input
                           type="checkbox"
