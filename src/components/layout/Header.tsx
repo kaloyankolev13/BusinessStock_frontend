@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Menu, Bell, Search } from 'lucide-react';
 import LanguageSwitcher from '../ui/LanguageSwitcher';

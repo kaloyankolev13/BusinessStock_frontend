@@ -26,7 +26,90 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
 
-  // Create navigation with translations
+  const toggleExpanded = (name: string) => {
+    setExpandedItems(prev =>
+      prev.includes(name)
+        ? prev.filter(item => item !== name)
+        : [...prev, name]
+    );
+  };
+
+  const isActive = (href: string) => {
+    return location.pathname === href || location.pathname.startsWith(href + '/');
+  };
+
+  const isParentActive = (item: NavItem) => {
+    if (isActive(item.href)) return true;
+    return item.children?.some(child => isActive(child.href)) || false;
+  };
+
+  React.useEffect(() => {
+    // Create navigation with translations inside useEffect
+    const navigation: NavItem[] = [
+      {
+        name: t('navigation.dashboard'),
+        href: '/dashboard',
+        icon: LayoutDashboard,
+      },
+      {
+        name: t('navigation.inventory'),
+        href: '/inventory',
+        icon: Package,
+        children: [
+          { name: t('inventory.items'), href: '/inventory/items', icon: Package },
+          { name: t('inventory.categories'), href: '/inventory/categories', icon: Package },
+          { name: t('inventory.suppliers'), href: '/inventory/suppliers', icon: Users },
+        ],
+      },
+      {
+        name: t('navigation.sales'),
+        href: '/sales',
+        icon: FileText,
+        children: [
+          { name: t('sales.invoices'), href: '/sales/invoices', icon: FileText },
+          { name: t('sales.clients'), href: '/sales/clients', icon: Users },
+        ],
+      },
+      {
+        name: t('navigation.purchasing'),
+        href: '/purchasing',
+        icon: ShoppingCart,
+        children: [
+          { name: t('purchasing.orders'), href: '/purchasing/orders', icon: ShoppingCart },
+          { name: t('purchasing.suppliers'), href: '/purchasing/suppliers', icon: Users },
+        ],
+      },
+      {
+        name: t('navigation.company'),
+        href: '/company',
+        icon: Building2,
+        children: [
+          { name: t('company.settings'), href: '/company/settings', icon: Settings },
+          { name: t('company.users'), href: '/company/users', icon: Users },
+        ],
+      },
+    ];
+
+    const checkActive = (href: string) => {
+      return location.pathname === href || location.pathname.startsWith(href + '/');
+    };
+
+    // Auto-expand parent items if child is active
+    const checkParentActive = (item: NavItem) => {
+      if (checkActive(item.href)) return true;
+      return item.children?.some(child => checkActive(child.href)) || false;
+    };
+
+    navigation.forEach(item => {
+      if (item.children && checkParentActive(item)) {
+        setExpandedItems(prev => 
+          prev.includes(item.name) ? prev : [...prev, item.name]
+        );
+      }
+    });
+  }, [location.pathname, t]);
+
+  // Create navigation for render (same as above but outside useEffect)
   const navigation: NavItem[] = [
     {
       name: t('navigation.dashboard'),
@@ -71,34 +154,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       ],
     },
   ];
-
-  const toggleExpanded = (name: string) => {
-    setExpandedItems(prev =>
-      prev.includes(name)
-        ? prev.filter(item => item !== name)
-        : [...prev, name]
-    );
-  };
-
-  const isActive = (href: string) => {
-    return location.pathname === href || location.pathname.startsWith(href + '/');
-  };
-
-  const isParentActive = (item: NavItem) => {
-    if (isActive(item.href)) return true;
-    return item.children?.some(child => isActive(child.href)) || false;
-  };
-
-  React.useEffect(() => {
-    // Auto-expand parent items if child is active
-    navigation.forEach(item => {
-      if (item.children && isParentActive(item)) {
-        setExpandedItems(prev => 
-          prev.includes(item.name) ? prev : [...prev, item.name]
-        );
-      }
-    });
-  }, [location.pathname, navigation]);
 
   return (
     <>
