@@ -1,4 +1,8 @@
 import type { Currency, Firm } from '../../../shared/types/common.types';
+import type { BaseFilters } from '../../../shared/types/api.types';
+
+// Re-export commonly used types from shared
+export type { PaginationParams, PaginatedResponse, ApiResponse, ApiError } from '../../../shared/types/api.types';
 
 // Base types
 export interface BaseEntity {
@@ -174,56 +178,24 @@ export interface CreateStockMovementRequest {
   notes?: string;
 }
 
-// Filter and pagination types
-export interface ItemFilters extends Record<string, unknown> {
-  search?: string;
+// Filter types extending base filters
+export interface ItemFilters extends BaseFilters {
   categoryId?: string;
   supplierId?: string;
-  isActive?: boolean;
   isLowStock?: boolean;
   minPrice?: number;
   maxPrice?: number;
   currencyId?: number;
   isComposite?: boolean;
+  priceMin?: number;
+  priceMax?: number;
+  stockLevel?: string;
 }
 
-export interface CategoryFilters extends Record<string, unknown> {
-  search?: string;
-  isActive?: boolean;
-}
+export type CategoryFilters = BaseFilters;
 
-export interface SupplierFilters extends Record<string, unknown> {
-  search?: string;
+export interface SupplierFilters extends BaseFilters {
   country?: string;
-  isActive?: boolean;
-}
-
-export interface PaginationParams extends Record<string, unknown> {
-  page: number;
-  limit: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-// API Response types
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
-
-export interface ApiError {
-  success: false;
-  message: string;
-  errors?: Record<string, string[]>;
 }
 
 // Stock alert types

@@ -1,4 +1,4 @@
-import { api, buildQueryParams } from '../../../shared/utils/api';
+import { api, buildQueryParams, createImportFunction, createExportFunction } from '../../../shared/utils/api';
 import type {
   Category,
   CreateCategoryRequest,
@@ -9,7 +9,11 @@ import type {
   ApiResponse,
 } from '../types';
 
-const CATEGORIES_BASE_URL = '/inventory/categories';
+const CATEGORIES_BASE_URL = '/categories';
+
+// Create shared import/export functions
+const importCategories = createImportFunction(CATEGORIES_BASE_URL);
+const exportCategories = createExportFunction(CATEGORIES_BASE_URL);
 
 export const categoriesApi = {
   // Get all categories with filtering and pagination
@@ -110,39 +114,8 @@ export const categoriesApi = {
   },
 
   // Export categories to CSV
-  exportCategories: async (filters?: CategoryFilters): Promise<ApiResponse<{ downloadUrl: string }>> => {
-    const params = filters || {};
-    const queryString = buildQueryParams(params);
-    const url = queryString 
-      ? `${CATEGORIES_BASE_URL}/export?${queryString}`
-      : `${CATEGORIES_BASE_URL}/export`;
-    return api.get<{ downloadUrl: string }>(url);
-  },
+  exportCategories: exportCategories as (filters?: CategoryFilters) => Promise<ApiResponse<{ downloadUrl: string }>>,
 
   // Import categories from CSV
-  importCategories: async (
-    file: File,
-    onProgress?: (progress: number) => void
-  ): Promise<ApiResponse<{ imported: number; errors: string[] }>> => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return api.post<{ imported: number; errors: string[] }>(
-      `${CATEGORIES_BASE_URL}/import`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            onProgress(progress);
-          }
-        },
-      }
-    );
-  },
+  importCategories: importCategories,
 }; 

@@ -1,4 +1,4 @@
-import { api, buildQueryParams } from '../../../shared/utils/api';
+import { api, buildQueryParams, createImportFunction, createExportFunction } from '../../../shared/utils/api';
 import type {
   Item,
   CreateItemRequest,
@@ -12,27 +12,31 @@ import type {
 } from '../types';
 
 const ITEMS_BASE_URL = '/Item';
-const STOCK_MOVEMENTS_BASE_URL = '/inventory/stock-movements';
+const STOCK_MOVEMENTS_BASE_URL = '/stock-movements';
 
-// Helper function to create paginated response from array
+// Helper function to create paginated response
 const createPaginatedResponse = <T>(
   data: T[],
   pagination?: PaginationParams
 ): PaginatedResponse<T> => {
   const page = pagination?.page || 1;
-  const limit = pagination?.limit || 20;
-  const total = data.length;
-  const totalPages = Math.ceil(total / limit);
-  
-  // For now, return all data since backend doesn't support pagination yet
+  const limit = pagination?.limit || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedData = data.slice(startIndex, endIndex);
+
   return {
-    data,
-    total,
+    data: paginatedData,
+    total: data.length,
     page,
     limit,
-    totalPages,
+    totalPages: Math.ceil(data.length / limit),
   };
 };
+
+// Create shared import/export functions
+const importItems = createImportFunction(ITEMS_BASE_URL);
+const exportItems = createExportFunction(ITEMS_BASE_URL);
 
 export const itemsApi = {
   // Get all items with filtering and pagination
@@ -222,39 +226,8 @@ export const itemsApi = {
   },
 
   // Export items to CSV
-  exportItems: async (filters?: ItemFilters): Promise<ApiResponse<{ downloadUrl: string }>> => {
-    const params = filters || {};
-    const queryString = buildQueryParams(params);
-    const url = queryString 
-      ? `${ITEMS_BASE_URL}/export?${queryString}`
-      : `${ITEMS_BASE_URL}/export`;
-    return api.get<{ downloadUrl: string }>(url);
-  },
+  exportItems: exportItems as (filters?: ItemFilters) => Promise<ApiResponse<{ downloadUrl: string }>>,
 
   // Import items from CSV
-  importItems: async (
-    file: File,
-    onProgress?: (progress: number) => void
-  ): Promise<ApiResponse<{ imported: number; errors: string[] }>> => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return api.post<{ imported: number; errors: string[] }>(
-      `${ITEMS_BASE_URL}/import`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            onProgress(progress);
-          }
-        },
-      }
-    );
-  },
+  importItems: importItems,
 }; 

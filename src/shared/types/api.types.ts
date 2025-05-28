@@ -28,7 +28,7 @@ export interface PaginatedResponse<T> {
 }
 
 // Common filter types
-export interface BaseFilters {
+export interface BaseFilters extends Record<string, unknown> {
   search?: string;
   isActive?: boolean;
 }

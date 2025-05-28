@@ -1,4 +1,4 @@
-import { api, buildQueryParams } from '../../../shared/utils/api';
+import { api, buildQueryParams, createImportFunction, createExportFunction } from '../../../shared/utils/api';
 import type {
   Supplier,
   CreateSupplierRequest,
@@ -10,6 +10,10 @@ import type {
 } from '../types';
 
 const SUPPLIERS_BASE_URL = '/inventory/suppliers';
+
+// Create shared import/export functions
+const importSuppliers = createImportFunction(SUPPLIERS_BASE_URL);
+const exportSuppliers = createExportFunction(SUPPLIERS_BASE_URL);
 
 export const suppliersApi = {
   // Get all suppliers with filtering and pagination
@@ -164,39 +168,8 @@ export const suppliersApi = {
   },
 
   // Export suppliers to CSV
-  exportSuppliers: async (filters?: SupplierFilters): Promise<ApiResponse<{ downloadUrl: string }>> => {
-    const params = filters || {};
-    const queryString = buildQueryParams(params);
-    const url = queryString 
-      ? `${SUPPLIERS_BASE_URL}/export?${queryString}`
-      : `${SUPPLIERS_BASE_URL}/export`;
-    return api.get<{ downloadUrl: string }>(url);
-  },
+  exportSuppliers: exportSuppliers as (filters?: SupplierFilters) => Promise<ApiResponse<{ downloadUrl: string }>>,
 
   // Import suppliers from CSV
-  importSuppliers: async (
-    file: File,
-    onProgress?: (progress: number) => void
-  ): Promise<ApiResponse<{ imported: number; errors: string[] }>> => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return api.post<{ imported: number; errors: string[] }>(
-      `${SUPPLIERS_BASE_URL}/import`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            onProgress(progress);
-          }
-        },
-      }
-    );
-  },
+  importSuppliers: importSuppliers,
 }; 

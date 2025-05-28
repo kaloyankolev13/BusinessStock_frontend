@@ -160,4 +160,44 @@ export const uploadFile = async (
       }
     },
   });
+};
+
+// Shared import/export utilities
+export const createImportFunction = (baseUrl: string) => {
+  return async (
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<ApiResponse<{ imported: number; errors: string[] }>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return api.post<{ imported: number; errors: string[] }>(
+      `${baseUrl}/import`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            onProgress(progress);
+          }
+        },
+      }
+    );
+  };
+};
+
+export const createExportFunction = (baseUrl: string) => {
+  return async (filters?: Record<string, unknown>): Promise<ApiResponse<{ downloadUrl: string }>> => {
+    const params = filters || {};
+    const queryString = buildQueryParams(params);
+    const url = queryString 
+      ? `${baseUrl}/export?${queryString}`
+      : `${baseUrl}/export`;
+    return api.get<{ downloadUrl: string }>(url);
+  };
 }; 

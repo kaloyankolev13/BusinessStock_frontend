@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Package, 
@@ -15,48 +14,51 @@ import {
 import { 
   useItems, 
   useLowStockItems, 
-//   useCreateItem, 
-//   useUpdateItem, 
   useDeleteItem,
   useExportItems,
-  useImportItems
+  useImportItems,
+  useInventoryStore
 } from '../features/inventory';
-import { formatCurrency, formatDate } from '../shared/utils';
-import type { ItemFilters, PaginationParams } from '../features/inventory';
+import { formatCurrency } from '../shared/utils';
 
-const Inventory: React.FC = () => {
+const Inventory = () => {
   const { t } = useTranslation();
-  const [filters, setFilters] = useState<ItemFilters>({});
-  const [pagination, setPagination] = useState<PaginationParams>({
-    page: 1,
-    limit: 20,
-    sortBy: 'name',
-    sortOrder: 'asc'
-  });
-  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Zustand store
+  const {
+    filters,
+    searchQuery,
+    pagination,
+    selectedItems,
+    showFilters,
+    viewMode,
+    setFilters,
+    setSearchQuery,
+    setPagination,
+    toggleItemSelection,
+    clearSelection,
+    toggleFilters,
+    setViewMode,
+    setSelectedItems,
+  } = useInventoryStore();
 
   // API hooks
   const { data: itemsData, isLoading, error } = useItems(filters, pagination);
   const { data: lowStockData } = useLowStockItems({ page: 1, limit: 5 });
-//   const createItemMutation = useCreateItem();
-//   const updateItemMutation = useUpdateItem();
   const deleteItemMutation = useDeleteItem();
   const exportItemsMutation = useExportItems();
   const importItemsMutation = useImportItems();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    setFilters(prev => ({ ...prev, search: query }));
-    setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const handleFilterChange = (newFilters: Partial<ItemFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-    setPagination(prev => ({ ...prev, page: 1 }));
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters(newFilters);
   };
 
   const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, page }));
+    setPagination({ page });
   };
 
   const handleExport = () => {
@@ -73,6 +75,17 @@ const Inventory: React.FC = () => {
   const handleDeleteItem = (itemId: number) => {  
     if (window.confirm(t('inventory.confirmDelete'))) {
       deleteItemMutation.mutate(itemId.toString());
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedItems.length === 0) return;
+    
+    if (window.confirm(t('inventory.confirmBulkDelete', { count: selectedItems.length }))) {
+      selectedItems.forEach(itemId => {
+        deleteItemMutation.mutate(itemId.toString());
+      });
+      clearSelection();
     }
   };
 
@@ -103,6 +116,30 @@ const Inventory: React.FC = () => {
           <p className="text-gray-600 mt-1">{t('inventory.description')}</p>
         </div>
         <div className="flex space-x-3">
+          {/* View Mode Toggle */}
+          <div className="flex border border-gray-300 rounded-lg">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm font-medium rounded-l-lg ${
+                viewMode === 'table'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Table
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-2 text-sm font-medium rounded-r-lg ${
+                viewMode === 'grid'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Grid
+            </button>
+          </div>
+          
           <label className="btn btn-outline cursor-pointer">
             <Upload className="h-4 w-4 mr-2" />
             {t('inventory.import')}
@@ -137,6 +174,32 @@ const Inventory: React.FC = () => {
             <span className="text-yellow-800 font-medium">
               {t('inventory.lowStockAlert', { count: lowStockData.data.total })}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Actions */}
+      {selectedItems.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-blue-800 font-medium">
+              {t('inventory.selectedItems', { count: selectedItems.length })}
+            </span>
+            <div className="flex space-x-2">
+              <button
+                onClick={clearSelection}
+                className="btn btn-outline btn-sm"
+              >
+                Clear Selection
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="btn btn-outline btn-sm text-red-600 border-red-300 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete Selected
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -176,109 +239,170 @@ const Inventory: React.FC = () => {
               <option value="true">{t('common.active')}</option>
               <option value="false">{t('common.inactive')}</option>
             </select>
-            <button className="btn btn-outline">
+            <button 
+              onClick={toggleFilters}
+              className={`btn ${showFilters ? 'btn-primary' : 'btn-outline'}`}
+            >
               <Filter className="h-4 w-4" />
             </button>
           </div>
         </div>
+        
+        {/* Advanced Filters */}
+        {showFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price Range
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    className="input input-bordered flex-1"
+                    onChange={(e) => handleFilterChange({ 
+                      priceMin: e.target.value ? parseFloat(e.target.value) : undefined 
+                    })}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    className="input input-bordered flex-1"
+                    onChange={(e) => handleFilterChange({ 
+                      priceMax: e.target.value ? parseFloat(e.target.value) : undefined 
+                    })}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock Level
+                </label>
+                <select
+                  onChange={(e) => handleFilterChange({ stockLevel: e.target.value || undefined })}
+                  className="select select-bordered w-full"
+                >
+                  <option value="">All Levels</option>
+                  <option value="low">Low Stock</option>
+                  <option value="normal">Normal</option>
+                  <option value="high">High Stock</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Supplier
+                </label>
+                <select
+                  onChange={(e) => handleFilterChange({ supplierId: e.target.value || undefined })}
+                  className="select select-bordered w-full"
+                >
+                  <option value="">All Suppliers</option>
+                  {/* Suppliers would be loaded from API */}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Items Table */}
+      {/* Items Table/Grid */}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center">
             <div className="loading loading-spinner loading-lg"></div>
             <p className="mt-2 text-gray-600">{t('common.loading')}</p>
           </div>
-        ) : (
+        ) : viewMode === 'table' ? (
           <>
             <div className="overflow-x-auto">
               <table className="table table-zebra w-full">
                 <thead>
                   <tr>
+                    <th>
+                      <input
+                        type="checkbox"
+                        className="checkbox"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            // Select all visible items
+                            const allIds = itemsData?.data.data.map(item => item.id) || [];
+                            setSelectedItems(allIds);
+                          } else {
+                            clearSelection();
+                          }
+                        }}
+                      />
+                    </th>
                     <th>{t('inventory.fields.name')}</th>
                     <th>{t('inventory.fields.sku')}</th>
                     <th>{t('inventory.fields.category')}</th>
-                    <th>{t('inventory.fields.stock')}</th>
                     <th>{t('inventory.fields.price')}</th>
-                    <th>Firm</th>
-                    <th>Created</th>
+                    <th>{t('inventory.fields.stock')}</th>
+                    <th>{t('inventory.fields.status')}</th>
                     <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {itemsData?.data.data.map((item) => (
-                    <tr key={item.id}>
+                    <tr key={item.sku}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          className="checkbox"
+                          checked={selectedItems.includes(item.id)}
+                          onChange={() => toggleItemSelection(item.id)}
+                        />
+                      </td>
                       <td>
                         <div className="flex items-center space-x-3">
-                          {item.imageUrl ? (
-                            <img 
-                              src={item.imageUrl} 
-                              alt={item.name}
-                              className="w-10 h-10 rounded-lg object-cover"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                              <Package className="h-5 w-5 text-gray-400" />
+                          <div className="avatar">
+                            <div className="mask mask-squircle w-12 h-12">
+                              <img 
+                                src="https://placehold.co/600x400" 
+                                alt={item.name}
+                                onError={(e) => {
+                                  e.currentTarget.src = '/placeholder-item.png';
+                                }}
+                              />
                             </div>
-                          )}
+                          </div>
                           <div>
-                            <div className="font-medium">{item.name}</div>
-                            {item.description && (
-                              <div className="text-sm text-gray-500 truncate max-w-xs">
-                                {item.description}
-                              </div>
-                            )}
-                            {item.isComposite && (
-                              <span className="badge badge-info badge-sm">Composite</span>
-                            )}
+                            <div className="font-bold">{item.name}</div>
+                            <div className="text-sm opacity-50">{item.description}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="font-mono text-sm">{item.sku || '-'}</td>
-                      <td>{item.categoryName || item.category?.name || '-'}</td>
+                      <td>{item.sku}</td>
+                      <td>{item.category?.name || '-'}</td>
+                      <td>{formatCurrency(item.price)}</td>
                       <td>
-                        <div className="flex items-center">
-                          <span className={`font-medium ${
-                            item.quantity <= (item.minStockLevel || 5)
-                              ? 'text-red-600' 
-                              : 'text-gray-900'
-                          }`}>
-                            {item.quantity}
-                          </span>
-                          <span className="text-gray-500 ml-1">{item.unitOfMeasure || 'pcs'}</span>
-                          {item.quantity <= (item.minStockLevel || 5) && (
-                            <AlertTriangle className="h-4 w-4 text-red-500 ml-2" />
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="font-medium">
-                          {formatCurrency(item.price, item.currency?.code || 'BGN')}
+                        <span className={`badge ${
+                          item.quantity <= (item.minStockLevel || 5)
+                            ? 'badge-error' 
+                            : item.quantity <= (item.minStockLevel || 5) * 2
+                            ? 'badge-warning'
+                            : 'badge-success'
+                        }`}>
+                          {item.quantity}
                         </span>
                       </td>
                       <td>
-                        <span className="text-sm text-gray-600">
-                          {item.firmName || item.firm?.name}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="text-sm text-gray-500">
-                          {formatDate(item.createdAt)}
+                        <span className={`badge ${item.isActive ? 'badge-success' : 'badge-error'}`}>
+                          {item.isActive ? t('common.active') : t('common.inactive')}
                         </span>
                       </td>
                       <td>
                         <div className="flex space-x-2">
-                          <button className="btn btn-ghost btn-sm">
+                          <button className="btn btn-ghost btn-xs">
                             <Eye className="h-4 w-4" />
                           </button>
-                          <button className="btn btn-ghost btn-sm">
+                          <button className="btn btn-ghost btn-xs">
                             <Edit className="h-4 w-4" />
                           </button>
                           <button 
                             onClick={() => handleDeleteItem(item.id)}
-                            className="btn btn-ghost btn-sm text-red-600 hover:text-red-700"
-                            disabled={deleteItemMutation.isPending}
+                            className="btn btn-ghost btn-xs text-red-600"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -289,39 +413,82 @@ const Inventory: React.FC = () => {
                 </tbody>
               </table>
             </div>
-
+            
             {/* Pagination */}
-            {itemsData?.data && itemsData.data.totalPages > 1 && (
+            {itemsData?.data && (
               <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
                 <div className="text-sm text-gray-700">
-                  {t('common.pagination.showing', {
-                    start: (pagination.page - 1) * pagination.limit + 1,
-                    end: Math.min(pagination.page * pagination.limit, itemsData.data.total),
-                    total: itemsData.data.total
-                  })}
+                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                  {Math.min(pagination.page * pagination.limit, itemsData.data.total)} of{' '}
+                  {itemsData.data.total} results
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                    className="btn btn-sm btn-outline"
+                    disabled={pagination.page <= 1}
+                    className="btn btn-outline btn-sm"
                   >
-                    {t('common.pagination.previous')}
+                    Previous
                   </button>
-                  <span className="flex items-center px-3 text-sm">
-                    {pagination.page} / {itemsData.data.totalPages}
-                  </span>
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page === itemsData.data.totalPages}
-                    className="btn btn-sm btn-outline"
+                    disabled={pagination.page >= itemsData.data.totalPages}
+                    className="btn btn-outline btn-sm"
                   >
-                    {t('common.pagination.next')}
+                    Next
                   </button>
                 </div>
               </div>
             )}
           </>
+        ) : (
+          // Grid View
+          <div className="p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {itemsData?.data.data.map((item) => (
+                <div key={item.id} className="card bg-base-100 shadow-md">
+                  <figure className="px-4 pt-4">
+                    <img 
+                      src="https://placehold.co/600x400" 
+                      alt={item.name}
+                      className="rounded-xl h-32 w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder-item.png';
+                      }}
+                    />
+                  </figure>
+                  <div className="card-body p-4">
+                    <h3 className="card-title text-sm">{item.name}</h3>
+                    <p className="text-xs text-gray-600">{item.sku}</p>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-bold">{formatCurrency(item.price)}</span>
+                      <span className={`badge badge-sm ${
+                        item.quantity <= (item.minStockLevel || 5)
+                          ? 'badge-error' 
+                          : 'badge-success'
+                      }`}>
+                        {item.quantity}
+                      </span>
+                    </div>
+                    <div className="card-actions justify-end mt-2">
+                      <button className="btn btn-ghost btn-xs">
+                        <Eye className="h-3 w-3" />
+                      </button>
+                      <button className="btn btn-ghost btn-xs">
+                        <Edit className="h-3 w-3" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteItem(item.id)}
+                        className="btn btn-ghost btn-xs text-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>

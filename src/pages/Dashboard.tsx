@@ -6,86 +6,79 @@ import {
   Users,
   FileText,
   DollarSign,
+  RefreshCw,
 } from 'lucide-react';
+import { useDashboardStore } from '../features/dashboard';
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const {
+    stats,
+    recentActivity,
+    isRefreshing,
+    lastRefresh,
+    refreshDashboard,
+  } = useDashboardStore();
 
-  const stats = [
+  const statsData = [
     {
       name: t('dashboard.totalRevenue'),
-      value: '$45,231.89',
-      change: '+20.1%',
-      changeType: 'increase',
+      value: stats.totalRevenue,
+      change: stats.revenueChange,
+      changeType: stats.revenueChangeType,
       icon: DollarSign,
     },
     {
       name: t('dashboard.activeItems'),
-      value: '2,350',
-      change: '+180',
-      changeType: 'increase',
+      value: stats.activeItems,
+      change: stats.itemsChange,
+      changeType: stats.itemsChangeType,
       icon: Package,
     },
     {
       name: t('dashboard.totalClients'),
-      value: '12,234',
-      change: '+19%',
-      changeType: 'increase',
+      value: stats.totalClients,
+      change: stats.clientsChange,
+      changeType: stats.clientsChangeType,
       icon: Users,
     },
     {
       name: t('dashboard.pendingInvoices'),
-      value: '573',
-      change: '-2%',
-      changeType: 'decrease',
+      value: stats.pendingInvoices,
+      change: stats.invoicesChange,
+      changeType: stats.invoicesChangeType,
       icon: FileText,
-    },
-  ];
-
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'invoice',
-      description: 'Invoice #INV-001 created for Acme Corp',
-      time: '2 hours ago',
-      amount: '$1,250.00',
-    },
-    {
-      id: 2,
-      type: 'purchase',
-      description: 'Purchase Order #PO-045 received',
-      time: '4 hours ago',
-      amount: '$850.00',
-    },
-    {
-      id: 3,
-      type: 'item',
-      description: 'New item "Wireless Headphones" added',
-      time: '6 hours ago',
-      amount: null,
-    },
-    {
-      id: 4,
-      type: 'client',
-      description: 'New client "Tech Solutions Ltd" registered',
-      time: '1 day ago',
-      amount: null,
     },
   ];
 
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('navigation.dashboard')}</h1>
-        <p className="text-gray-600">
-          {t('dashboard.welcome')}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{t('navigation.dashboard')}</h1>
+          <p className="text-gray-600">
+            {t('dashboard.welcome')}
+          </p>
+          {lastRefresh && (
+            <p className="text-sm text-gray-500 mt-1">
+              Last updated: {lastRefresh.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={refreshDashboard}
+          disabled={isRefreshing}
+          className="btn btn-outline"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
+        </button>
       </div>
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {statsData.map((stat) => (
           <div key={stat.name} className="card p-6">
             <div className="flex items-center">
               <div className="flex-shrink-0">

@@ -1,10 +1,10 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
+import PlaceholderPage from './components/ui/PlaceholderPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -28,30 +28,19 @@ function App() {
             {/* Main app routes */}
             <Route path="/" element={<Layout />}>
               <Route path="dashboard" element={<Dashboard />} />
-              
-              {/* Inventory routes */}
               <Route path="inventory/items" element={<Inventory />} />
-              <Route path="inventory/categories" element={<div className="p-8 text-center text-gray-500">Categories page coming soon...</div>} />
-              <Route path="inventory/suppliers" element={<div className="p-8 text-center text-gray-500">Suppliers page coming soon...</div>} />
               
-              {/* Sales routes */}
-              <Route path="sales/invoices" element={<div className="p-8 text-center text-gray-500">Invoices page coming soon...</div>} />
-              <Route path="sales/clients" element={<div className="p-8 text-center text-gray-500">Clients page coming soon...</div>} />
-              
-              {/* Purchasing routes */}
-              <Route path="purchasing/orders" element={<div className="p-8 text-center text-gray-500">Purchase Orders page coming soon...</div>} />
-              <Route path="purchasing/suppliers" element={<div className="p-8 text-center text-gray-500">Purchasing Suppliers page coming soon...</div>} />
-              
-              {/* Company routes */}
-              <Route path="company/settings" element={<div className="p-8 text-center text-gray-500">Company Settings page coming soon...</div>} />
-              <Route path="company/users" element={<div className="p-8 text-center text-gray-500">Users page coming soon...</div>} />
-              
-              {/* Settings */}
-              <Route path="settings" element={<div className="p-8 text-center text-gray-500">Settings page coming soon...</div>} />
+              {/* Placeholder routes - to be implemented */}
+              <Route path="inventory/categories" element={<PlaceholderPage title="Categories page" />} />
+              <Route path="inventory/suppliers" element={<PlaceholderPage title="Suppliers page" />} />
+              <Route path="sales/*" element={<PlaceholderPage title="Sales module" />} />
+              <Route path="purchasing/*" element={<PlaceholderPage title="Purchasing module" />} />
+              <Route path="company/*" element={<PlaceholderPage title="Company module" />} />
+              <Route path="settings" element={<PlaceholderPage title="Settings page" />} />
             </Route>
             
             {/* Catch all route */}
-            <Route path="*" element={<div className="p-8 text-center text-gray-500">Page not found</div>} />
+            <Route path="*" element={<PlaceholderPage title="Page not found" />} />
           </Routes>
           
           {/* Toast notifications */}
